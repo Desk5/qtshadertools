@@ -356,6 +356,7 @@ static bool addOrReplace(const QShader &shaderPack,
         }
 
         const QShaderKey key = shaderKeyFromWhatSpec(what, variant);
+        const QByteArray entry = key.source() == QShader::MslShader ? QByteArrayLiteral("main0") : QByteArrayLiteral("main");
         const QString fn = spec[2];
 
         const QByteArray buf = readFile(fn, FileType::Binary);
@@ -365,16 +366,16 @@ static bool addOrReplace(const QShader &shaderPack,
         // Does not matter if 'key' was present before or not, we support both
         // replacing and adding using the same qsb -r ... syntax.
 
-        const QShaderCode code(buf, QByteArrayLiteral("main"));
+        const QShaderCode code(buf, entry);
         workShaderPack.setShader(key, code);
 
         if (!silent) {
-            qDebug("Replaced %s %d%s (variant %s) with %s. Entry point is 'main'.",
+            qDebug("Replaced %s %d%s (variant %s) with %s. Entry point is '%s'.",
                    qPrintable(sourceStr(key.source())),
                    key.sourceVersion().version(),
                    key.sourceVersion().flags().testFlag(QShaderVersion::GlslEs) ? " es" : "",
                    qPrintable(sourceVariantStr(key.sourceVariant())),
-                   qPrintable(fn));
+                   qPrintable(fn), qPrintable(entry));
         }
     }
     return writeToFile(workShaderPack.serialized(qsbVersion), outfn, FileType::Binary);
